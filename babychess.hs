@@ -12,9 +12,9 @@ newtype Pos = Pos (Int, Int)
 data PieceType 
   = King
   | Queen
+  | Rook
   | Bishop
   | Knight
-  | Rook
   | Pawn
   deriving (Show, Eq)
 
@@ -32,9 +32,9 @@ data State = State {
 prettyType :: PieceType -> String
 prettyType King = "K"
 prettyType Queen = "Q"
+prettyType Rook = "R"
 prettyType Bishop = "B"
 prettyType Knight = "N"
-prettyType Rook = "R"
 prettyType Pawn = "P"
 
 prettyPiece :: Piece -> String
@@ -48,6 +48,24 @@ prettySquare (Square (Just p)) = prettyPiece p
 prettyBoard :: Board -> String
 prettyBoard (Board board) = unlines (map prettyRow board)
   where prettyRow = concatMap prettySquare
+
+valuePieceType :: PieceType -> Int
+valuePieceType King = 1000
+valuePieceType Queen = 9
+valuePieceType Rook = 5
+valuePieceType Bishop = 3
+valuePieceType Knight = 3
+valuePieceType Pawn = 1
+
+valuePiece :: Piece -> Int
+valuePiece (Piece (Black, typ)) = negate $ valuePieceType typ
+valuePiece (Piece (White, typ)) = valuePieceType typ
+
+evaluateBoard :: Board -> Int
+evaluateBoard (Board rows) = sum $ map evaluateRow rows
+  where evaluateRow row = sum $ map evaluateSquare row
+        evaluateSquare (Square (Nothing)) = 0
+        evaluateSquare (Square (Just piece)) = valuePiece piece
 
 xx = Square Nothing
 black p = Square $ Just $ Piece (Black, p)
@@ -78,6 +96,24 @@ initialBoard = Board
   ,[wr,wn,wb,wk,wq,wb,wn,wr]
   ]
 
+whiteWinningBoard = Board
+  [[bk,xx,xx,xx,xx,xx,xx,xx]
+  ,[bp,bp,xx,xx,xx,xx,xx,xx]
+  ,[xx,xx,xx,xx,xx,xx,xx,xx]
+  ,[xx,xx,xx,xx,xx,xx,xx,xx]
+  ,[xx,xx,xx,xx,xx,xx,xx,xx]
+  ,[xx,xx,xx,xx,xx,xx,xx,xx]
+  ,[wp,wp,wp,xx,xx,xx,xx,xx]
+  ,[xx,wk,xx,wr,xx,xx,xx,xx]
+  ]
+
+printBoard b = do
+  putStr $ prettyBoard b
+  putStrLn $ "evaluation: " ++ show (evaluateBoard b)
+
 main = do 
-putStrLn "babychess 0.0"
-putStr $ prettyBoard initialBoard
+  putStrLn "babychess 0.0\n"
+  printBoard initialBoard
+  putStrLn ""
+  printBoard whiteWinningBoard
+  putStrLn ""
